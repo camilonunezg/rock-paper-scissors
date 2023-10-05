@@ -31,7 +31,7 @@ const playOptions = reactive<IPlayOption[]>([
     icon: "✂️",
     slugName: PlayKeys.Scissors,
     beats: [PlayKeys.Paper, PlayKeys.Lizard],
-    defeatedBy: [PlayKeys.Rock, PlayKeys.Scissors],
+    defeatedBy: [PlayKeys.Rock, PlayKeys.Spock],
   },
   {
     icon: "📄",
@@ -53,17 +53,19 @@ const playOptions = reactive<IPlayOption[]>([
   },
 ]);
 const machinePick = ref<any>(null);
-const showResult = ref();
+const showResult = ref('');
 function getMachinePick() {
   const randomIndex = Math.floor(Math.random() * playOptions.length);
   machinePick.value = playOptions[randomIndex];
 }
+
+const checkGameIsDraw = (optionSelected: IPlayOption) => optionSelected.slugName === machinePick.value.slugName
+const checkGameIsLose = (optionSelected: IPlayOption) => optionSelected.defeatedBy.includes(machinePick.value.slugName)
+
 function startToPlay(optionSelected: IPlayOption) {
   getMachinePick();
-  const userLose = optionSelected.defeatedBy.includes(
-    machinePick.value.slugName
-  );
-  const isDraw = optionSelected.slugName === machinePick.value.slugName;
+  const userLose = checkGameIsLose(optionSelected)
+  const isDraw = checkGameIsDraw(optionSelected)
   if (!userLose && !isDraw) {
     showResult.value = Results.Win;
   } else if (isDraw) {
@@ -77,7 +79,7 @@ function startToPlay(optionSelected: IPlayOption) {
 <template>
   <section>
     <h1>Rock, Paper, Scissors</h1>
-    <h2>!!! You {{ showResult }} !!!</h2>
+    <h2 v-if="showResult">!!! You {{ showResult }} !!!</h2>
     <div class="main-container">
       <div class="container">
         <button
