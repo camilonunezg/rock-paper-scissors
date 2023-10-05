@@ -1,53 +1,113 @@
 <script setup lang="ts">
-import { reactive } from 'vue';
+import { reactive, ref } from "vue";
 
 enum PlayKeys {
   Rock = "ROCK",
   Scissors = "SCISSORS",
   Paper = "PAPER",
+  Spock = "SPOCK",
+  Lizard = "LIZARD",
 }
 
 interface IPlayOption {
-  icon: string,
-  slugName: string,
-  beats: PlayKeys[],
-  defeatedBy: PlayKeys[],
+  icon: string;
+  slugName: PlayKeys;
+  beats: PlayKeys[];
+  defeatedBy: PlayKeys[];
 }
-
+enum Results {
+  Win = "Win",
+  Lose = "Lose",
+  Draw = "Draw",
+}
 const playOptions = reactive<IPlayOption[]>([
   {
     icon: "🗿",
     slugName: PlayKeys.Rock,
-    beats: [PlayKeys.Scissors],
-    defeatedBy: [PlayKeys.Paper],
+    beats: [PlayKeys.Scissors, PlayKeys.Lizard],
+    defeatedBy: [PlayKeys.Paper, PlayKeys.Spock],
   },
   {
     icon: "✂️",
     slugName: PlayKeys.Scissors,
-    beats: [PlayKeys.Paper],
-    defeatedBy: [PlayKeys.Rock],
+    beats: [PlayKeys.Paper, PlayKeys.Lizard],
+    defeatedBy: [PlayKeys.Rock, PlayKeys.Scissors],
   },
   {
     icon: "📄",
     slugName: PlayKeys.Paper,
-    beats: [PlayKeys.Rock],
-    defeatedBy: [PlayKeys.Scissors],
+    beats: [PlayKeys.Rock, PlayKeys.Spock],
+    defeatedBy: [PlayKeys.Scissors, PlayKeys.Lizard],
   },
-])
+  {
+    icon: "🦎",
+    slugName: PlayKeys.Lizard,
+    beats: [PlayKeys.Paper, PlayKeys.Spock],
+    defeatedBy: [PlayKeys.Rock, PlayKeys.Scissors],
+  },
+  {
+    icon: "🖖",
+    slugName: PlayKeys.Spock,
+    beats: [PlayKeys.Rock, PlayKeys.Scissors],
+    defeatedBy: [PlayKeys.Paper, PlayKeys.Lizard],
+  },
+]);
+const machinePick = ref<any>(null);
+const showResult = ref();
+function getMachinePick() {
+  const randomIndex = Math.floor(Math.random() * playOptions.length);
+  machinePick.value = playOptions[randomIndex];
+}
+function startToPlay(optionSelected: IPlayOption) {
+  getMachinePick();
+  const userLose = optionSelected.defeatedBy.includes(
+    machinePick.value.slugName
+  );
+  const isDraw = optionSelected.slugName === machinePick.value.slugName;
+  if (!userLose && !isDraw) {
+    showResult.value = Results.Win;
+  } else if (isDraw) {
+    showResult.value = Results.Draw;
+  } else {
+    showResult.value = Results.Lose;
+  }
+}
 </script>
 
 <template>
   <section>
     <h1>Rock, Paper, Scissors</h1>
-    <div class="container">
-      <button class="btn" v-for="option in playOptions" :key="option.slugName">
-        {{ option.icon }}
-      </button>
+    <h2>!!! You {{ showResult }} !!!</h2>
+    <div class="main-container">
+      <div class="container">
+        <button
+          class="btn"
+          v-for="option in playOptions"
+          :key="option.slugName"
+          @click="startToPlay(option)"
+        >
+          {{ option.icon }}
+        </button>
+      </div>
+      <div class="container">
+        <button
+          class="btn"
+          v-for="option in playOptions"
+          :key="option.slugName"
+          :disabled="option.slugName !== machinePick?.slugName ?? ''"
+        >
+          {{ option.icon }}
+        </button>
+      </div>
     </div>
   </section>
 </template>
 
 <style scoped>
+.main-container {
+  display: flex;
+  justify-content: space-between;
+}
 .container {
   display: flex;
   flex-direction: column;
