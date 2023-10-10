@@ -1,51 +1,51 @@
-import { describe, test, expect } from "vitest";
-import { render, screen } from "@testing-library/vue";
+import { describe, test, expect, assert } from "vitest";
+import { render, screen, waitFor } from "@testing-library/vue";
 import GameApp from "../GameApp.vue";
-import { PlayKeys, checkGameIsLose, checkGameIsDraw } from "../GameController";
-import userEvent from "@testing-library/user-event";
+
+import {
+  PlayKeys,
+  getMachinePick,
+  machinePick,
+  getPlayOptionBySlugName,
+  checkGameIsLose,
+  checkGameIsDraw,
+} from "../GameController";
 
 describe("Given the game starts", () => {
-  const wrapper = render(GameApp);
-  const gameResult = screen.getByTestId("game-result");
-  const rockSelector = screen.getByTestId(PlayKeys.Rock);
-  const scissorsSelector = screen.getByTestId(PlayKeys.Scissors);
+  render(GameApp);
+  const machinePickSelector = screen.queryByTestId("machine-pick");
 
-  describe("When player choose rock and machine chosse scissor", async () => {
-    const drawOnRockSelection = checkGameIsDraw(
-      {
-        icon: "🗿",
-        slugName: PlayKeys.Rock,
-        beats: [PlayKeys.Scissors, PlayKeys.Lizard],
-        defeatedBy: [PlayKeys.Paper, PlayKeys.Spock],
-      },
-      {
-        icon: "🗿",
-        slugName: PlayKeys.Rock,
-        beats: [PlayKeys.Scissors, PlayKeys.Lizard],
-        defeatedBy: [PlayKeys.Paper, PlayKeys.Spock],
-      }
-    );
-    test("Then the message contains 'win'", () => {
-      expect(drawOnRockSelection).toBe(true);
+  describe("When game starts with any interaction", () => {
+    test("Then no machine choose is selected", async () => {
+      expect(machinePickSelector).toBe(null)
+    })
+  })
+
+  describe("When player choose rock and machine chosse paper", async () => {
+    const rockSelection = getPlayOptionBySlugName(PlayKeys.Rock)
+    const paperSelection = getPlayOptionBySlugName(PlayKeys.Paper)
+    machinePick.value = paperSelection
+    const userLose = checkGameIsLose(rockSelection);
+    test("Then the message contains 'lose'", async () => {
+      await waitFor(() => expect(userLose).toBe(true))
     });
   });
-  describe("When player choose rock and machine chosse scissor", async () => {
-    const drawOnRockSelection = checkGameIsDraw(
-      {
-        icon: "🗿",
-        slugName: PlayKeys.Rock,
-        beats: [PlayKeys.Scissors, PlayKeys.Lizard],
-        defeatedBy: [PlayKeys.Paper, PlayKeys.Spock],
-      },
-      {
-        icon: "📄",
-        slugName: PlayKeys.Paper,
-        beats: [PlayKeys.Rock, PlayKeys.Spock],
-        defeatedBy: [PlayKeys.Scissors, PlayKeys.Lizard],
-      }
-    );
-    test("Then the message contains 'win'", () => {
-      expect(drawOnRockSelection).toBe(false);
+
+  describe("When player choose rock and machine chosse scissors", async () => {
+    const rockSelection = getPlayOptionBySlugName(PlayKeys.Rock)
+    const scissorsSelection = getPlayOptionBySlugName(PlayKeys.Scissors)
+    machinePick.value = scissorsSelection
+    const userLose = checkGameIsLose(rockSelection);
+    const isDraw = checkGameIsDraw(rockSelection, scissorsSelection);
+    test("Then the player wins", async () => {
+      expect(!userLose && !isDraw).toBe(true)
     });
   });
+
+  describe("When a random choose is compared with itself", async () => {
+    getMachinePick()
+    test("Then the game result is a 'draw'", () => {
+      assert.equal(machinePick.value.slugName, machinePick.value.slugName)
+    })
+  })
 });

@@ -1,5 +1,5 @@
 import { reactive, ref } from "vue";
-
+ 
 export enum PlayKeys {
   Rock = "ROCK",
   Scissors = "SCISSORS",
@@ -62,3 +62,27 @@ export const checkGameIsDraw = (
 ) => optionSelected.slugName === machinePick.slugName;
 export const checkGameIsLose = (optionSelected: IPlayOption) =>
   optionSelected.defeatedBy.includes(machinePick.value.slugName);
+
+export const getMachinePick = () => {
+  const randomIndex = Math.floor(Math.random() * playOptions.length);
+  machinePick.value = playOptions[randomIndex];
+}
+
+export const getPlayOptionBySlugName = (slugName: PlayKeys): IPlayOption => {
+  return playOptions.find(option => option.slugName === slugName) ?? playOptions[0]
+}
+
+export const labelResult = ref("");
+
+export async function startToPlay(optionSelected: IPlayOption, randomize: boolean = true) {
+  if (randomize) getMachinePick();
+  const userLose = checkGameIsLose(optionSelected);
+  const isDraw = checkGameIsDraw(optionSelected, machinePick.value);
+  if (!userLose && !isDraw) {    
+    labelResult.value = Results.Win;
+  } else if (isDraw) {
+    labelResult.value = Results.Draw;
+  } else {
+    labelResult.value = Results.Lose;
+  }
+}

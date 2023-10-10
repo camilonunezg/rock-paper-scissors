@@ -1,39 +1,17 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import {
   playOptions,
-  IPlayOption,
-  Results,
   machinePick,
-  checkGameIsLose,
-  checkGameIsDraw,
+  labelResult,
+  startToPlay,
 } from "./GameController";
-
-const showResult = ref("");
-function getMachinePick() {
-  const randomIndex = Math.floor(Math.random() * playOptions.length);
-  machinePick.value = playOptions[randomIndex];
-}
-
-function startToPlay(optionSelected: IPlayOption) {
-  getMachinePick();
-  const userLose = checkGameIsLose(optionSelected);
-  const isDraw = checkGameIsDraw(optionSelected, machinePick.value);
-  if (!userLose && !isDraw) {
-    showResult.value = Results.Win;
-  } else if (isDraw) {
-    showResult.value = Results.Draw;
-  } else {
-    showResult.value = Results.Lose;
-  }
-}
 </script>
 
 <template>
   <section>
     <h1>Rock, Paper, Scissors</h1>
-    <h2 v-show="showResult" data-testid="game-result">
-      !!! You {{ showResult }} !!!
+    <h2 v-show="labelResult" data-testid="game-result">
+      !!! You {{ labelResult }} !!!
     </h2>
     <div class="main-container">
       <div class="container">
@@ -54,7 +32,7 @@ function startToPlay(optionSelected: IPlayOption) {
           :key="option.slugName"
           :disabled="option.slugName !== machinePick?.slugName ?? ''"
           :data-testid="
-            option.slugName !== machinePick?.slugName ? 'machine-pick' : ''
+            option.slugName === machinePick?.slugName ? 'machine-pick' : ''
           "
         >
           {{ option.icon }}
